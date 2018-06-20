@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tanya-config
+data:
+  interval: '600'
+  jira-url: ''
+  jira-username: ''
+  rocketchat-email: ''
+  rocketchat-url: ''
+  todoist-project: ''
