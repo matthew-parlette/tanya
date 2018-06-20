@@ -24,10 +24,12 @@ async def run(bot, interval):
 async def create_tasks_from_jira(bot):
     with bot.JiraAPI() as jira:
         issues = jira.search_issues("assignee = currentUser() AND resolution = Unresolved")
+        """
         bot.message(
             message="I'm currently processing {} JIRA issues assigned to {}".format(
                 len(issues), bot.config.get("jira-username")),
             rooms=["house-party"])
+        """
         for issue in issues:
             print("Processing issue {}...".format(issue.key))
             with bot.Task(
@@ -45,10 +47,12 @@ async def create_tasks_from_jira(bot):
                     task.update(date_string="tod")
                 # Update priority to match jira
                 task.update(priority=priority(issue.fields.priority))
+        """
         bot.message(
             message="I've completed processing the {} JIRA issues assigned to {}".format(
                 len(issues), bot.config.get("jira-username")),
             rooms=["house-party"])
+        """
 
 bot = Bot(path=".")
 
