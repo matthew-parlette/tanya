@@ -32,21 +32,25 @@ async def create_tasks_from_jira(bot):
         """
         for issue in issues:
             print("Processing issue {}...".format(issue.key))
-            with bot.Task(
-                subject="[{}] {} - {}".format(issue.key, issue.fields.summary, "parlette.us"),
-                project_name=bot.config.get("todoist-project")) as task:
-                # print("Processing task:\n{}".format(task))
-                if task["due_date_utc"]:
-                    due_utc = datetime.datetime.strptime(task["due_date_utc"], '%a %d %b %Y %H:%M:%S %z').replace(tzinfo=None)
-                    now = datetime.datetime.utcnow()
-                    if now > due_utc:
-                        # Task is overdue, set it to be due today
+            try:
+                with bot.Task(
+                    subject="[{}] {} - {}".format(issue.key, issue.fields.summary, "parlette.us"),
+                    project_name=bot.config.get("todoist-project")) as task:
+                    print("Processing task '{}'".format(task["content"]))
+                    if task["due_date_utc"]:
+                        due_utc = datetime.datetime.strptime(task["due_date_utc"], '%a %d %b %Y %H:%M:%S %z').replace(tzinfo=None)
+                        now = datetime.datetime.utcnow()
+                        if now > due_utc:
+                            # Task is overdue, set it to be due today
+                            task.update(date_string="tod")
+                    else:
+                        # Due date is not set, set the due date to today
                         task.update(date_string="tod")
-                else:
-                    # Due date is not set, set the due date to today
-                    task.update(date_string="tod")
-                # Update priority to match jira
-                task.update(priority=priority(issue.fields.priority))
+                    # Update priority to match jira
+                    task.update(priority=priority(issue.fields.priority))
+            except:
+                # For any exception, just move on and catch it in the next run
+                pass
         """
         bot.message(
             message="I've completed processing the {} JIRA issues assigned to {}".format(
