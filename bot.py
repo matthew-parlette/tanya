@@ -17,12 +17,14 @@ def priority(priority):
 
 async def run(bot, interval):
     while True:
+        print("Running task 'Create tasks from JIRA'...")
         await create_tasks_from_jira(bot)
         print("Waiting {} seconds for the next run...".format(interval))
         await asyncio.sleep(interval)
 
 async def create_tasks_from_jira(bot):
     with bot.JiraAPI() as jira:
+        if jira: print("Loaded JIRA api")
         issues = jira.search_issues("assignee = currentUser() AND resolution = Unresolved")
         """
         bot.message(
@@ -60,7 +62,9 @@ async def create_tasks_from_jira(bot):
 
 bot = Bot(path=".")
 
-bot.message(message="I'm online", rooms=["house-party"])
+# bot.message(message="I'm online", rooms=["house-party"])
+
+print("I'm online, starting event loop...")
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(
