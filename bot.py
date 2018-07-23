@@ -44,14 +44,18 @@ async def create_tasks_from_jira(bot):
                         now = datetime.datetime.utcnow()
                         if now > due_utc:
                             # Task is overdue, set it to be due today
+                            print("Task is overdue, setting date to today...")
                             task.update(date_string="tod")
                     else:
                         # Due date is not set, set the due date to today
+                        print("Task has no due date, setting date to today...")
                         task.update(date_string="tod")
                     # Update priority to match jira
+                    print("Updating task priority to {}...".format(priority(issue.fields.priority)))
                     task.update(priority=priority(issue.fields.priority))
-            except:
+            except e:
                 # For any exception, just move on and catch it in the next run
+                print("Caught an exception {}".format(e))
                 pass
         """
         bot.message(
