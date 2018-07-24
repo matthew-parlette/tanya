@@ -8,8 +8,8 @@ import (
 )
 
 func TestTodoistTasksFromJira(t *testing.T) {
-	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "/home/matt/src/tanya/config")
-	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "/home/matt/src/tanya/secrets")
+	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
+	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "secrets")
 	todoistClient, err := houseparty.GetTodoistClient()
 	if err != nil {
 		t.Errorf("Error: %v", err)
