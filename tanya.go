@@ -97,8 +97,8 @@ func createTodoistTaskfromJiraIssues(todoistClient *todoist.Client, jiraClient *
 
 func main() {
 	fmt.Println("Initializing...")
-	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "/home/matt/src/tanya/config")
-	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "/home/matt/src/tanya/secrets")
+	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
+	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "secrets")
 	ticker := time.NewTicker(30 * time.Second)
 	shutdown := make(chan struct{})
 
