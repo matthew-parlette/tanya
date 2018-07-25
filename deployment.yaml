@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tanya
+spec:
+  selector:
+    matchLabels:
+      app: tanya
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tanya
+    spec:
+      containers:
+      - name: tanya
+        image: mattparlette/tanya:latest
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: tanya-config
+          mountPath: /app/config
+          readOnly: true
+        - name: tanya-secrets
+          mountPath: /app/secrets
+          readOnly: true
+      volumes:
+      - name: tanya-config
+        configMap:
+          name: tanya-config
+      - name: tanya-secrets
+        secret:
+          secretName: tanya-secrets
