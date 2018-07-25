@@ -62,7 +62,7 @@
   branch = "master"
   name = "github.com/matthew-parlette/houseparty"
   packages = ["."]
-  revision = "43d200d3bb6310742be74fc4eb0534084916f228"
+  revision = "d33affbd9037752cd54bfc5396aea2a38f669e93"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
