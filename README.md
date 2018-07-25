@@ -5,6 +5,7 @@
 ### Building
 
 ```
+docker run --rm -v "$PWD":/go/src/github.com/matthew-parlette/tanya -w /go/src/github.com/matthew-parlette/tanya iron/go:dev go build -o tanya
 docker build -t tanya .
 ```
 
