@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/RocketChat/Rocket.Chat.Go.SDK/models"
 	chat "github.com/RocketChat/Rocket.Chat.Go.SDK/realtime"
 	jira "github.com/andygrunwald/go-jira"
+	"github.com/heptiolabs/healthcheck"
 	"github.com/sachaos/todoist/lib"
 )
 
@@ -69,6 +72,8 @@ func GetTodoistClient() (*todoist.Client, error) {
 		// Color:       false,
 	}
 	todoistClient := todoist.NewClient(config)
+	var store todoist.Store
+	todoistClient.Store = &store
 	return todoistClient, nil
 }
 
@@ -89,4 +94,24 @@ func GetRocketChatClient() (*chat.Client, error) {
 		return nil, err
 	}
 	return chatClient, nil
+}
+
+func StartHealthCheck() error {
+	health := healthcheck.NewHandler()
+	// Our app is not happy if we've got more than 100 goroutines running.
+	health.AddLivenessCheck("goroutine-threshold", healthcheck.GoroutineCountCheck(100))
+	// Our app is not ready if we can't resolve our upstream dependencies in DNS.
+	health.AddReadinessCheck("todoist-dns", healthcheck.DNSResolveCheck("www.todoist.com", 50*time.Millisecond))
+	chatUrl, err := url.Parse(Config("rocketchat-url"))
+	if err != nil {
+		return err
+	}
+	health.AddReadinessCheck("chat-dns", healthcheck.DNSResolveCheck(chatUrl.Host, 50*time.Millisecond))
+	jiraUrl, err := url.Parse(Config("jira-url"))
+	if err != nil {
+		return err
+	}
+	health.AddReadinessCheck("jira-dns", healthcheck.DNSResolveCheck(jiraUrl.Host, 50*time.Millisecond))
+	go http.ListenAndServe("0.0.0.0:8086", health)
+	return nil
 }

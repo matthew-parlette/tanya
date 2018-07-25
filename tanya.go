@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	jira "github.com/andygrunwald/go-jira"
@@ -99,7 +100,12 @@ func main() {
 	fmt.Println("Initializing...")
 	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
 	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "secrets")
-	ticker := time.NewTicker(30 * time.Second)
+	houseparty.StartHealthCheck()
+	interval, err := strconv.Atoi(houseparty.Config("interval"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	shutdown := make(chan struct{})
 
 	todoistClient, err := houseparty.GetTodoistClient()

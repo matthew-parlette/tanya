@@ -29,6 +29,12 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/fatih/structs"
   packages = ["."]
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
@@ -57,12 +63,6 @@
   name = "github.com/heptiolabs/healthcheck"
   packages = ["."]
   revision = "da5fdee475fb09de87c5d4a50da233b7d28767b1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/matthew-parlette/houseparty"
-  packages = ["."]
-  revision = "43d200d3bb6310742be74fc4eb0534084916f228"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -134,11 +134,11 @@
   branch = "master"
   name = "golang.org/x/net"
   packages = ["websocket"]
-  revision = "3673e40ba22529d22c3fd7c93e97b0ce50fa7bdd"
+  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1e3d687bcaeb9e4f1352cf210cdaa39904e78f25a8b42709af03c9a56efa6969"
+  inputs-digest = "f6e5f8fa5c984ab3598e8369f6d4857f1ffa53a12cac1547e5211a4cee9451ec"
   solver-name = "gps-cdcl"
   solver-version = 1
