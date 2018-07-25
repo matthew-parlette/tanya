@@ -1,4 +1,4 @@
-package tanya
+package main
 
 import (
 	"fmt"
