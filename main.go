@@ -123,14 +123,14 @@ func main() {
 
 	// First run before waiting for ticker
 	_, err = createTodoistTaskfromJiraIssues(todoistClient, jiraClient)
-	fmt.Println("Press enter to shutdown...")
+	// fmt.Println("Press enter to shutdown...")
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
 				createTodoistTaskfromJiraIssues(todoistClient, jiraClient)
-				fmt.Println("Press enter to shutdown...")
+				// fmt.Println("Press enter to shutdown...")
 			case <-shutdown:
 				ticker.Stop()
 				return
@@ -138,6 +138,6 @@ func main() {
 		}
 	}()
 
-	var input string
-	fmt.Scanln(&input)
+	// var input string
+	// fmt.Scanln(&input)
 }
