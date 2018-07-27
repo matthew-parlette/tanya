@@ -29,6 +29,14 @@ func todoistPriority(jiraPriority string) int {
 	}
 }
 
+func syncTodoist(todoistClient *todoist.Client) bool {
+	if err := todoistClient.Sync(context.Background()); err != nil {
+		log.Fatal(err)
+		return false
+	}
+	return true
+}
+
 func getContentFromJiraIssue(issue jira.Issue) string {
 	return fmt.Sprintf("[[%v] %v - parlette.us](%v)", issue.Key, issue.Fields.Summary, fmt.Sprintf("%v/browse/%v", houseparty.Config("jira-url"), issue.Key))
 }
@@ -46,7 +54,7 @@ func getTodoistWorkingProjectID(todoistClient *todoist.Client) int {
 	}
 
 	if project == 0 {
-		log.Fatal("Could not find project with name", houseparty.Config("todoist-project"))
+		log.Fatal("Could not find project with name ", houseparty.Config("todoist-project"))
 	}
 
 	return project
@@ -65,9 +73,6 @@ func findExistingTodoistTask(todoistClient *todoist.Client, content string) []to
 func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *jira.Client) (int, error) {
 	fmt.Println("Creating tasks from Jira issues...")
 	count := 0
-	if err := todoistClient.Sync(context.Background()); err != nil {
-		return count, err
-	}
 
 	project := getTodoistWorkingProjectID(todoistClient)
 
@@ -108,9 +113,6 @@ func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *
 				return count, err
 			}
 		}
-		if err := todoistClient.Sync(context.Background()); err != nil {
-			return count, err
-		}
 		count = count + 1
 	}
 	fmt.Println("Found", count, "Jira issues assigned to user")
@@ -120,9 +122,6 @@ func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *
 func completeTodoistTasksFromJiraIssues(todoistClient *todoist.Client, jiraClient *jira.Client) (int, error) {
 	fmt.Println("Completing tasks from Jira issues...")
 	count := 0
-	if err := todoistClient.Sync(context.Background()); err != nil {
-		return count, err
-	}
 
 	issues, _, err := jiraClient.Issue.Search(
 		"assignee = currentUser() AND resolution != Unresolved AND updated >= startOfMonth(-1)",
@@ -146,11 +145,30 @@ func completeTodoistTasksFromJiraIssues(todoistClient *todoist.Client, jiraClien
 		if err = todoistClient.CloseItem(context.Background(), items); err != nil {
 			return count, err
 		}
-		if err := todoistClient.Sync(context.Background()); err != nil {
-			return count, err
-		}
 	} else {
 		fmt.Println("No todoist tasks found to close, moving on...")
+	}
+	return count, nil
+}
+
+func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
+	fmt.Println("Updating overdue tasks to a due date of today...")
+	count := 0
+
+	for _, item := range todoistClient.Store.Items {
+		if item.DateString != "" && time.Now().UTC().After(item.DateTime()) {
+			item.DateString = "tod"
+			if err := todoistClient.UpdateItem(context.Background(), item); err != nil {
+				return 0, err
+			}
+			count = count + 1
+		}
+	}
+	fmt.Println("Found", count, "overdue todoist tasks")
+	if count > 0 {
+		fmt.Println("Updating due date to today for", count, "todoist tasks...")
+	} else {
+		fmt.Println("No overdue todoist tasks found, moving on...")
 	}
 	return count, nil
 }
@@ -181,16 +199,24 @@ func main() {
 	}
 
 	// First run before waiting for ticker
-	createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-	completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+	if syncTodoist(todoistClient) {
+		createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
+		completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+		updateOverdueTasks(todoistClient)
+		syncTodoist(todoistClient)
+	}
 	fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-				completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+				if syncTodoist(todoistClient) {
+					createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
+					completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+					updateOverdueTasks(todoistClient)
+					syncTodoist(todoistClient)
+				}
 				fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
 			case <-shutdown:
 				ticker.Stop()
@@ -202,5 +228,5 @@ func main() {
 	// var input string
 	// fmt.Scanln(&input)
 	// block forever
-	select {}
+	<-shutdown
 }
