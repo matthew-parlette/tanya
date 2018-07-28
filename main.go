@@ -156,7 +156,7 @@ func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
 	count := 0
 
 	for _, item := range todoistClient.Store.Items {
-		if item.DateString != "" && time.Now().UTC().After(item.DateTime()) {
+		if item.DateString != "" && !strings.Contains(item.DateString, "every") && time.Now().UTC().After(item.DateTime()) {
 			item.DateString = "tod"
 			if err := todoistClient.UpdateItem(context.Background(), item); err != nil {
 				return 0, err
