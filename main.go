@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"time"
+	"strings"
 
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/matthew-parlette/houseparty"
