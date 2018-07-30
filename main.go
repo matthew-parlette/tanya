@@ -15,17 +15,17 @@ import (
 func todoistPriority(jiraPriority string) int {
 	switch jiraPriority {
 	case "Lowest":
-		return 3
+		return 2
 	case "Low":
-		return 3
+		return 2
 	case "Medium":
-		return 2
+		return 3
 	case "High":
-		return 1
+		return 4
 	case "Highest":
-		return 1
+		return 4
 	default:
-		return 2
+		return 3
 	}
 }
 
