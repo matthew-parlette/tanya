@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"time"
 	"strings"
+	"time"
 
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/matthew-parlette/houseparty"
@@ -157,8 +157,13 @@ func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
 	count := 0
 
 	for _, item := range todoistClient.Store.Items {
-		if item.DateString != "" && !strings.Contains(item.DateString, "every") && time.Now().UTC().After(item.DateTime()) {
-			item.DateString = "tod"
+		if item.DateString != "" && time.Now().UTC().After(item.DateTime()) {
+			if strings.Contains(item.DateString, "every") {
+				item.DueDateUtc = time.Now().UTC().String()
+				item.AllDay = true
+			} else {
+				item.DateString = "tod"
+			}
 			if err := todoistClient.UpdateItem(context.Background(), item); err != nil {
 				return 0, err
 			}
