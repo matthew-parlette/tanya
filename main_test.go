@@ -21,12 +21,7 @@ func TestMain(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	if syncTodoist(todoistClient) {
-		createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-		completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
-		updateOverdueTasks(todoistClient)
-		syncTodoist(todoistClient)
-	}
+	run(todoistClient, jiraClient)
 }
 
 func TestTodoistObject(t *testing.T) {
