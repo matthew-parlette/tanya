@@ -113,8 +113,8 @@ func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *
 			if err := todoistClient.AddItem(context.Background(), item); err != nil {
 				return count, err
 			}
+			count = count + 1
 		}
-		count = count + 1
 	}
 	fmt.Println("Found", count, "Jira issues assigned to user")
 	return count, nil
@@ -122,13 +122,12 @@ func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *
 
 func completeTodoistTasksFromJiraIssues(todoistClient *todoist.Client, jiraClient *jira.Client) (int, error) {
 	fmt.Println("Completing tasks from Jira issues...")
-	count := 0
 
 	issues, _, err := jiraClient.Issue.Search(
 		"assignee = currentUser() AND resolution != Unresolved AND updated >= startOfMonth(-1)",
 		nil)
 	if err != nil {
-		return count, err
+		return 0, err
 	}
 
 	items := []int{}
@@ -138,18 +137,17 @@ func completeTodoistTasksFromJiraIssues(todoistClient *todoist.Client, jiraClien
 		for _, task := range existing {
 			items = append(items, task.GetID())
 		}
-		count = count + 1
 	}
-	fmt.Println("Found", count, "Jira issues updated since the beginning of last month")
+	fmt.Println("Found", len(issues), "Jira issues updated since the beginning of last month")
 	if len(items) > 0 {
 		fmt.Println("Closing", len(items), "todoist tasks...")
 		if err = todoistClient.CloseItem(context.Background(), items); err != nil {
-			return count, err
+			return len(items), err
 		}
 	} else {
 		fmt.Println("No todoist tasks found to close, moving on...")
 	}
-	return count, nil
+	return 0, nil
 }
 
 func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
@@ -179,6 +177,16 @@ func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
 	return count, nil
 }
 
+func run(todoistClient *todoist.Client, jiraClient *jira.Client) {
+	if syncTodoist(todoistClient) {
+		_, _ = createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
+		_, _ = completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+		_, _ = updateOverdueTasks(todoistClient)
+		syncTodoist(todoistClient)
+	}
+	fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
+}
+
 func main() {
 	fmt.Println("Initializing...")
 	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
@@ -205,25 +213,13 @@ func main() {
 	}
 
 	// First run before waiting for ticker
-	if syncTodoist(todoistClient) {
-		createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-		completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
-		updateOverdueTasks(todoistClient)
-		syncTodoist(todoistClient)
-	}
-	fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
+	run(todoistClient, jiraClient)
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				if syncTodoist(todoistClient) {
-					createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-					completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
-					updateOverdueTasks(todoistClient)
-					syncTodoist(todoistClient)
-				}
-				fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
+				run(todoistClient, jiraClient)
 			case <-shutdown:
 				ticker.Stop()
 				return
