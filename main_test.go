@@ -20,8 +20,12 @@ func TestMain(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	chatClient, err := houseparty.GetRocketChatClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	run(todoistClient, jiraClient)
+	run(todoistClient, jiraClient, chatClient)
 }
 
 func TestTodoistObject(t *testing.T) {

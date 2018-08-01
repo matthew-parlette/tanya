@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RocketChat/Rocket.Chat.Go.SDK/models"
+	chat "github.com/RocketChat/Rocket.Chat.Go.SDK/realtime"
 	jira "github.com/andygrunwald/go-jira"
 	"github.com/matthew-parlette/houseparty"
 	"github.com/sachaos/todoist/lib"
@@ -177,12 +179,25 @@ func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
 	return count, nil
 }
 
-func run(todoistClient *todoist.Client, jiraClient *jira.Client) {
+func run(todoistClient *todoist.Client, jiraClient *jira.Client, chatClient *chat.Client) {
 	if syncTodoist(todoistClient) {
-		_, _ = createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
-		_, _ = completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
-		_, _ = updateOverdueTasks(todoistClient)
-		syncTodoist(todoistClient)
+		created, _ := createTodoistTaskFromJiraIssues(todoistClient, jiraClient)
+		completed, _ := completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
+		overdue, _ := updateOverdueTasks(todoistClient)
+		if syncTodoist(todoistClient) && (created > 0 || completed > 0 || overdue > 0) {
+			message := "I updated"
+			if created > 0 {
+				message = fmt.Sprintf("%v\n* Created %v tasks from jira issues", message, created)
+			}
+			if completed > 0 {
+				message = fmt.Sprintf("%v\n* Completed %v tasks (jira issue was closed)", message, completed)
+			}
+			if overdue > 0 {
+				message = fmt.Sprintf("%v\n* Updated due date for %v overdue tasks", message, overdue)
+			}
+			channel, _ := chatClient.GetChannelId("house-party")
+			chatClient.SendMessage(&models.Channel{Id: channel}, message)
+		}
 	}
 	fmt.Printf("Waiting %v seconds to run again...\n", houseparty.Config("interval"))
 }
@@ -207,19 +222,19 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = houseparty.GetRocketChatClient()
+	chatClient, err := houseparty.GetRocketChatClient()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// First run before waiting for ticker
-	run(todoistClient, jiraClient)
+	run(todoistClient, jiraClient, chatClient)
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				run(todoistClient, jiraClient)
+				run(todoistClient, jiraClient, chatClient)
 			case <-shutdown:
 				ticker.Stop()
 				return
