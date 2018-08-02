@@ -185,7 +185,7 @@ func run(todoistClient *todoist.Client, jiraClient *jira.Client, chatClient *cha
 		completed, _ := completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
 		overdue, _ := updateOverdueTasks(todoistClient)
 		if syncTodoist(todoistClient) && (created > 0 || completed > 0 || overdue > 0) {
-			message := "I made some changes to your task list\n\n```"
+			message := "I made some changes to your task list\n```"
 			if created > 0 {
 				message = fmt.Sprintf("%v\n- Created %v tasks from jira issues", message, created)
 			}
