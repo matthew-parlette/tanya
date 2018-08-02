@@ -118,7 +118,7 @@ func createTodoistTaskFromJiraIssues(todoistClient *todoist.Client, jiraClient *
 			count = count + 1
 		}
 	}
-	fmt.Println("Found", count, "Jira issues assigned to user")
+	fmt.Println("Created", count, "new tasks from", len(issues), "Jira issues assigned to user")
 	return count, nil
 }
 
