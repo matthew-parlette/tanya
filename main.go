@@ -144,12 +144,12 @@ func completeTodoistTasksFromJiraIssues(todoistClient *todoist.Client, jiraClien
 	if len(items) > 0 {
 		fmt.Println("Closing", len(items), "todoist tasks...")
 		if err = todoistClient.CloseItem(context.Background(), items); err != nil {
-			return len(items), err
+			return 0, err
 		}
 	} else {
 		fmt.Println("No todoist tasks found to close, moving on...")
 	}
-	return 0, nil
+	return len(items), nil
 }
 
 func updateOverdueTasks(todoistClient *todoist.Client) (int, error) {
