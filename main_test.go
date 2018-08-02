@@ -29,6 +29,7 @@ func TestMain(t *testing.T) {
 }
 
 func TestTodoistObject(t *testing.T) {
+	t.Skip("Skipping Todoist object test")
 	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
 	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "secrets")
 
