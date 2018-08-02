@@ -185,16 +185,17 @@ func run(todoistClient *todoist.Client, jiraClient *jira.Client, chatClient *cha
 		completed, _ := completeTodoistTasksFromJiraIssues(todoistClient, jiraClient)
 		overdue, _ := updateOverdueTasks(todoistClient)
 		if syncTodoist(todoistClient) && (created > 0 || completed > 0 || overdue > 0) {
-			message := "I updated"
+			message := "I just\n\n```"
 			if created > 0 {
-				message = fmt.Sprintf("%v\n* Created %v tasks from jira issues", message, created)
+				message = fmt.Sprintf("%v\n- Created %v tasks from jira issues", message, created)
 			}
 			if completed > 0 {
-				message = fmt.Sprintf("%v\n* Completed %v tasks (jira issue was closed)", message, completed)
+				message = fmt.Sprintf("%v\n- Completed %v tasks (jira issue was closed)", message, completed)
 			}
 			if overdue > 0 {
-				message = fmt.Sprintf("%v\n* Updated due date for %v overdue tasks", message, overdue)
+				message = fmt.Sprintf("%v\n- Updated due date for %v overdue tasks", message, overdue)
 			}
+			message = fmt.Sprintf("%v\n```", message)
 			channel, _ := chatClient.GetChannelId("house-party")
 			chatClient.SendMessage(&models.Channel{Id: channel}, message)
 		}
