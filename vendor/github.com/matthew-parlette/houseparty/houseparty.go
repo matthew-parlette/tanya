@@ -96,6 +96,77 @@ func GetRocketChatClient() (*chat.Client, error) {
 	return chatClient, nil
 }
 
+func GetChatChannel(chatClient *chat.Client, channel string) models.Channel {
+	channel_id, _ := chatClient.GetChannelId(channel)
+	return models.Channel{Id: channel_id}
+}
+
+func SendChatMessage(chatClient *chat.Client, channel string, message string) error {
+	ch := GetChatChannel(chatClient, "house-party")
+	chatClient.SendMessage(&ch, message)
+	return nil
+}
+
+func GetNonBotUsers(chatClient *chat.Client) []string {
+	// rawResponse, err := chatClient.ddp.Call("getUserRoles")
+	// if err != nil {
+	// 	return []string
+	// }
+	// document, _ := gabs.Consume(rawResponse)
+	// roles, err := document.Children()
+	// result = []string
+	// for _, role := range roles {
+	// 	result = append(result, role["username"])
+	// }
+	return []string{"matt"}
+}
+
+func IsNonBotUser(user string, nonBotUsers []string) bool {
+	for _, u := range nonBotUsers {
+		if u == user {
+			return true
+		}
+	}
+	return false
+}
+
+func StartChatListener(chatClient *chat.Client) error {
+	channel := GetChatChannel(chatClient, "house-party")
+	messageChannel := make(chan models.Message, 1)
+	if err := chatClient.SubscribeToMessageStream(&channel, messageChannel); err != nil {
+		return err
+	}
+	shutdown := make(chan struct{})
+	nonBotUsers := GetNonBotUsers(chatClient)
+	fmt.Println("Only listening for messages from", nonBotUsers)
+	go func() {
+		for {
+			select {
+			case msg := <-messageChannel:
+				// fmt.Println("I saw a message with text:", msg)
+				if IsNonBotUser(msg.User.UserName, nonBotUsers) {
+					if strings.Contains(msg.Text, "status") || strings.Contains(msg.Text, "check in") {
+						SendChatMessage(chatClient, "house-party", "I'm online")
+					}
+					if strings.Contains(msg.Text, "help") || strings.Contains(msg.Text, "commands") {
+						response := "Here are commands I can respond to:"
+						// response = fmt.Sprintf("%v\n```", response)
+						response = fmt.Sprintf("%v\n> *status*: See if I am online", response)
+						response = fmt.Sprintf("%v\n> *check in*: See if I am online", response)
+						response = fmt.Sprintf("%v\n> *help*: Get a list of commands", response)
+						response = fmt.Sprintf("%v\n> *commands*: Get a list of commands", response)
+						// response = fmt.Sprintf("%v\n```", response)
+						SendChatMessage(chatClient, "house-party", response)
+					}
+				}
+			case <-shutdown:
+				return
+			}
+		}
+	}()
+	return nil
+}
+
 func StartHealthCheck() error {
 	health := healthcheck.NewHandler()
 	// Our app is not happy if we've got more than 100 goroutines running.
