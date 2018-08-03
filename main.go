@@ -227,6 +227,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	houseparty.StartChatListener(chatClient)
 
 	// First run before waiting for ticker
 	run(todoistClient, jiraClient, chatClient)

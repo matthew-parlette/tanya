@@ -28,6 +28,17 @@ func TestMain(t *testing.T) {
 	run(todoistClient, jiraClient, chatClient)
 }
 
+func TestChatListener(t *testing.T) {
+	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
+	houseparty.SecretsPath = houseparty.GetEnv("SECRETS_PATH", "secrets")
+
+	chatClient, err := houseparty.GetRocketChatClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+	houseparty.StartChatListener(chatClient)
+}
+
 func TestTodoistObject(t *testing.T) {
 	t.Skip("Skipping Todoist object test")
 	houseparty.ConfigPath = houseparty.GetEnv("CONFIG_PATH", "config")
