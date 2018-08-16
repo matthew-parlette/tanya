@@ -68,7 +68,7 @@
   branch = "master"
   name = "github.com/matthew-parlette/houseparty"
   packages = ["."]
-  revision = "76541fc73ca0436af8b16f49b67a37e9addeff2c"
+  revision = "4f3eedd1cd8638e077ac574fad2cb680557094e7"
 
 [[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
@@ -145,6 +145,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "102486f1e743b382f4b0c05075f631061365ca5efd26a2ff8e871ea4a471cc91"
+  inputs-digest = "5d6353d49f5c295662687659174efdf6e3228dad262f2b8d65baacef0c8c6a7d"
   solver-name = "gps-cdcl"
   solver-version = 1
